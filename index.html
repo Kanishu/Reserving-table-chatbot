@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spice Haven - Restaurant Chatbot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+});
+
+</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         
@@ -135,6 +140,21 @@
         
         <div class="bg-white rounded-lg shadow-xl overflow-hidden">
             <div class="bg-indigo-700 text-white p-4 flex items-center">
+<div class="md:hidden ml-auto">
+  <button id="mobile-menu-btn" class="text-white focus:outline-none">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor"
+         viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+</div>
+<div id="mobile-menu" class="hidden absolute top-16 right-4 bg-white shadow-md rounded p-4 z-50">
+  <a href="#" class="block text-gray-800 py-2">New Reservation</a>
+  <a href="#" class="block text-gray-800 py-2">Help</a>
+  <a href="#" class="block text-gray-800 py-2">Contact</a>
+</div>
+
                 <div class="bg-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
                     <img src="Restaurent.jpg" alt="Spice Haven restaurant logo" class="rounded-full w-full h-full object-cover">
                 </div>
@@ -207,51 +227,51 @@
             // Define paths for your local images using the absolute paths you provided
             // WARNING: These absolute paths are NOT recommended for production or sharing.
             // They will ONLY work on your specific computer if the browser allows file:// access.
-            const BASE_PATH = "file:///C:/Users/udhya/OneDrive/Desktop/chatbot/";
-            const CHAT_AVATAR_PATH =   <img src="chat.jpg" alt="chat">;
-            const USER_AVATAR_PATH =  "user.jpg";
+            const BASE_PATH = "";
+            const CHAT_AVATAR_PATH = "chat.jpg";
+            const USER_AVATAR_PATH = "user.jpg";
             
             // Centralized Menu Data with specific image paths
             const menuCategories = [
                 {
                     name: 'Breakfast Specials',
                     items: [
-                        { name: 'Masala Dosa', price: 300, desc: 'Crispy rice crepe with spiced potato filling',   <img src="Masala Dosa.jpg" alt="Masala Dosa.jpg"> },
-                        { name: 'Idli-Sambar', price: 220, desc: 'Soft steamed rice cakes with lentil stew', img: BASE_PATH + "Idli-Sambar.jpg" },
-                        { name: 'Vada', price: 180, desc: 'Crispy fried lentil doughnuts with chutney', img: BASE_PATH + "Vada.jpg" },
-                        { name: 'Pongal', price: 250, desc: 'Creamy rice and lentil porridge with ghee', img: BASE_PATH + "Pongal.jpg" }
+                        { name: 'Masala Dosa', price: 300, desc: 'Crispy rice crepe with spiced potato filling', img: "PASTE_LINK_HERE" },
+                        { name: 'Idli-Sambar', price: 220, desc: 'Soft steamed rice cakes with lentil stew', img: "PASTE_LINK_HERE" },
+                        { name: 'Vada', price: 180, desc: 'Crispy fried lentil doughnuts with chutney', img: "PASTE_LINK_HERE" },
+                        { name: 'Pongal', price: 250, desc: 'Creamy rice and lentil porridge with ghee', img: "PASTE_LINK_HERE" }
                     ]
                 },
                 {
                     name: 'Lunch Thalis',
                     items: [
-                        { name: 'Vegetarian Thali', price: 550, desc: 'Assortment of curries, rice, bread, and sweets', img: BASE_PATH + "Vegetarian Thali.jpg" },
-                        { name: 'Non-Veg Thali', price: 650, desc: 'Meat curries with rice, bread, and sides', img: BASE_PATH + "Non-Veg Thali.jpg" },
-                        { name: 'Mini Thali', price: 350, desc: 'Smaller portion for lighter appetite', img: BASE_PATH + "Mini Thali.jpg" }
+                        { name: 'Vegetarian Thali', price: 550, desc: 'Assortment of curries, rice, bread, and sweets', img: "PASTE_LINK_HERE" },
+                        { name: 'Non-Veg Thali', price: 650, desc: 'Meat curries with rice, bread, and sides', img: "PASTE_LINK_HERE" },
+                        { name: 'Mini Thali', price: 350, desc: 'Smaller portion for lighter appetite', img: "PASTE_LINK_HERE" }
                     ]
                 },
                 {
                     name: 'Dinner Specials',
                     items: [
-                        { name: 'Chettinad Chicken', price: 600, desc: 'Spicy pepper chicken from Tamil Nadu', img: BASE_PATH + "Chettinad Chicken.jpg" },
-                        { name: 'Fish Curry', price: 700, desc: 'Traditional Kerala-style fish in coconut gravy', img: BASE_PATH + "Fish Curry.jpg" },
-                        { name: 'Biryani', price: 550, desc: 'Fragrant rice cooked with spices and meat', img: BASE_PATH + "Biryani.jpg" },
+                        { name: 'Chettinad Chicken', price: 600, desc: 'Spicy pepper chicken from Tamil Nadu', img: "PASTE_LINK_HERE" },
+                        { name: 'Fish Curry', price: 700, desc: 'Traditional Kerala-style fish in coconut gravy', img: "PASTE_LINK_HERE" },
+                        { name: 'Biryani', price: 550, desc: 'Fragrant rice cooked with spices and meat', img: "PASTE_LINK_HERE" },
                     ]
                 },
                 {
                     name: 'Snacks & Sides',
                     items: [
-                        { name: 'Pakora', price: 150, desc: 'Assorted vegetable fritters', img: BASE_PATH + "Pakora.jpg" },
-                        { name: 'Samosa', price: 80, desc: 'Spiced potato stuffed pastry', img: BASE_PATH + "Samosa.jpg" },
-                        { name: 'Raita', price: 90, desc: 'Cooling yogurt with vegetables', img: BASE_PATH + "Raita.jpg" }
+                        { name: 'Pakora', price: 150, desc: 'Assorted vegetable fritters', img: "PASTE_LINK_HERE" },
+                        { name: 'Samosa', price: 80, desc: 'Spiced potato stuffed pastry', img: "PASTE_LINK_HERE" },
+                        { name: 'Raita', price: 90, desc: 'Cooling yogurt with vegetables', img: "PASTE_LINK_HERE" }
                     ]
                 },
                 {
                     name: 'Desserts',
                     items: [
-                        { name: 'Payasam', price: 200, desc: 'Sweet rice pudding with nuts', img: BASE_PATH + "Payasam.jpg" },
-                        { name: 'Gulab Jamun', price: 150, desc: 'Fried milk balls in syrup', img: BASE_PATH + "Gulab Jamun.jpg" },
-                        { name: 'Mango Lassi', price: 120, desc: 'Sweet yogurt mango drink', img: BASE_PATH + "Mango Lassi.jpg" }
+                        { name: 'Payasam', price: 200, desc: 'Sweet rice pudding with nuts', img: "PASTE_LINK_HERE" },
+                        { name: 'Gulab Jamun', price: 150, desc: 'Fried milk balls in syrup', img: "PASTE_LINK_HERE" },
+                        { name: 'Mango Lassi', price: 120, desc: 'Sweet yogurt mango drink', img: "PASTE_LINK_HERE" }
                     ]
                 }
             ];
@@ -320,7 +340,7 @@
                 div.className = 'flex items-start mb-4 bot-message p-4';
                 div.innerHTML = `
                     <div class="flex-shrink-0 mr-3">
-                        <img src="chat.jpg" alt="Chatbot avatar" class="rounded-full w-10 h-10 object-cover">
+                        <img src="${CHAT_AVATAR_PATH}" alt="Chatbot avatar" class="rounded-full w-10 h-10 object-cover">
                     </div>
                     <div class="text-gray-800">
                         ${message}
@@ -338,7 +358,7 @@
                         ${message}
                     </div>
                     <div class="flex-shrink-0 ml-3">
-                        <img src="user.jpg" alt="User avatar" class="rounded-full w-10 h-10 object-cover">
+                        <img src="${USER_AVATAR_PATH}" alt="User avatar" class="rounded-full w-10 h-10 object-cover">
                     </div>
                 `;
                 chatContainer.appendChild(div);
@@ -355,7 +375,7 @@
                 const seatingOptionsHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 w-full">
                         <div id="seating-balcony" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Balcony Seating' ? 'selected' : ''}">
-                            <img src="Balcony Seating.jpg" alt="Elegant balcony seating with panoramic city views at sunset" class="w-full h-48 object-cover">
+                            <img src="${BASE_PATH}Balcony Seating.jpg" alt="Elegant balcony seating with panoramic city views at sunset" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Balcony Seating</h3>
                                 <p class="text-gray-600 text-sm">Enjoy breathtaking views while dining</p>
@@ -363,7 +383,7 @@
                             </div>
                         </div>
                         <div id="seating-window" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Window Side Seating' ? 'selected' : ''}">
-                            <img src="Window Side.jpg" alt="Cozy window-side seats with natural light and garden views" class="w-full h-48 object-cover">
+                            <img src="${BASE_PATH}Window Side.jpg" alt="Cozy window-side seats with natural light and garden views" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Window Side</h3>
                                 <p class="text-gray-600 text-sm">Natural light with garden views</p>
@@ -371,7 +391,7 @@
                             </div>
                         </div>
                         <div id="seating-garden" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Garden Seating' ? 'selected' : ''}">
-                            <img src="Garden Seating.jpg" alt="Serene garden seating surrounded by lush tropical plants and soft lighting" class="w-full h-48 object-cover">
+                            <img src="${BASE_PATH}Garden Seating.jpg" alt="Serene garden seating surrounded by lush tropical plants and soft lighting" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Garden Seating</h3>
                                 <p class="text-gray-600 text-sm">Fresh air in our tropical garden</p>
@@ -913,6 +933,11 @@
                 }, 1000);
             }
         });
-    </script>
+    
+document.getElementById('mobile-menu-btn').addEventListener('click', function () {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+});
+
+</script>
 </body>
 </html>
