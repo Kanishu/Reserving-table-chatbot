@@ -320,7 +320,7 @@
                 div.className = 'flex items-start mb-4 bot-message p-4';
                 div.innerHTML = `
                     <div class="flex-shrink-0 mr-3">
-                        <img src="${CHAT_AVATAR_PATH}" alt="Chatbot avatar" class="rounded-full w-10 h-10 object-cover">
+                        <img src="chat.jpg" alt="Chatbot avatar" class="rounded-full w-10 h-10 object-cover">
                     </div>
                     <div class="text-gray-800">
                         ${message}
@@ -338,7 +338,7 @@
                         ${message}
                     </div>
                     <div class="flex-shrink-0 ml-3">
-                        <img src="${USER_AVATAR_PATH}" alt="User avatar" class="rounded-full w-10 h-10 object-cover">
+                        <img src="user.jpg" alt="User avatar" class="rounded-full w-10 h-10 object-cover">
                     </div>
                 `;
                 chatContainer.appendChild(div);
@@ -355,7 +355,7 @@
                 const seatingOptionsHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 w-full">
                         <div id="seating-balcony" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Balcony Seating' ? 'selected' : ''}">
-                            <img src="${BASE_PATH}Balcony Seating.jpg" alt="Elegant balcony seating with panoramic city views at sunset" class="w-full h-48 object-cover">
+                            <img src="Balcony Seating.jpg" alt="Elegant balcony seating with panoramic city views at sunset" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Balcony Seating</h3>
                                 <p class="text-gray-600 text-sm">Enjoy breathtaking views while dining</p>
@@ -363,7 +363,7 @@
                             </div>
                         </div>
                         <div id="seating-window" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Window Side Seating' ? 'selected' : ''}">
-                            <img src="${BASE_PATH}Window Side.jpg" alt="Cozy window-side seats with natural light and garden views" class="w-full h-48 object-cover">
+                            <img src="Window Side.jpg" alt="Cozy window-side seats with natural light and garden views" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Window Side</h3>
                                 <p class="text-gray-600 text-sm">Natural light with garden views</p>
@@ -371,7 +371,7 @@
                             </div>
                         </div>
                         <div id="seating-garden" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Garden Seating' ? 'selected' : ''}">
-                            <img src="${BASE_PATH}Garden Seating.jpg" alt="Serene garden seating surrounded by lush tropical plants and soft lighting" class="w-full h-48 object-cover">
+                            <img src="Garden Seating.jpg" alt="Serene garden seating surrounded by lush tropical plants and soft lighting" class="w-full h-48 object-cover">
                             <div class="p-4 bg-white">
                                 <h3 class="font-semibold text-lg text-indigo-700">Garden Seating</h3>
                                 <p class="text-gray-600 text-sm">Fresh air in our tropical garden</p>
