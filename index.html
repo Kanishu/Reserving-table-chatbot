@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice Haven - Restaurant Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .chat-container {
+            height: 80vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background-color: #fcfcfc; /* Slightly off-white for chat background */
+            display: flex; /* Added flex for better message alignment */
+            flex-direction: column; /* Messages stack vertically */
+        }
+        
+        .user-message {
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 1rem 1rem 0 1rem;
+            max-width: 75%; /* Limit width for better readability */
+            align-self: flex-end; /* Align to the right */
+        }
+        
+        .bot-message {
+            background-color: white;
+            border-radius: 1rem 1rem 1rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            max-width: 75%; /* Limit width for better readability */
+            align-self: flex-start; /* Align to the left */
+        }
+        
+        .seating-option, .menu-item {
+            transition: all 0.3s ease;
+        }
+        
+        .seating-option:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .seating-option.selected {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5); /* Indigo-500 with transparency */
+            transform: scale(1.01); /* Slight bump on select */
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #input-area {
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .animate-pulse {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .btn-action {
+            transition: all 0.2s ease;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .time-slot-btn.selected {
+            background-color: #4f46e5 !important;
+            color: white !important;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.5);
+        }
+
+        /* Pop-up specific styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 128, 0, 0.9); /* Green with transparency */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem; /* Tailwind: rounded-lg */
+            text-align: center;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Tailwind: shadow-xl */
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .popup-overlay.show .popup-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto max-w-4xl px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-700 mb-2">Spice Haven</h1>
+            <p class="text-gray-600">Authentic South Indian Dining Experience</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+            <div class="bg-indigo-700 text-white p-4 flex items-center">
+                <div class="bg-white rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                    <img src="file:///C:/Users/udhya/OneDrive/Desktop/chatbot/Restaurent.jpg" alt="Spice Haven restaurant logo" class="rounded-full w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 class="font-semibold text-lg">Reservation Assistant</h2>
+                    <p class="text-indigo-200 text-sm">Live Chat</p>
+                </div>
+                <div class="ml-auto flex items-center">
+                    <div class="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+                    <span class="text-xs">Online</span>
+                </div>
+            </div>
+            
+            <div id="chat-container" class="chat-container p-4 space-y-4">
+                </div>
+            
+            <div id="input-area" class="bg-gray-50 p-4">
+                <div id="user-input-container" class="flex space-x-2">
+                    <input type="text" id="user-input" placeholder="Type your message..." class="flex-1 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button id="send-btn" class="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 transition btn-action">Send</button>
+                </div>
+                <div id="action-buttons" class="hidden mt-2 flex flex-wrap gap-2">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="payment-success-popup" class="popup-overlay hidden">
+        <div class="popup-content">
+            <svg class="mx-auto text-green-500 w-24 h-24 mb-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
+            <p class="text-gray-600 mb-6">Your reservation and payment have been confirmed.</p>
+            <button onclick="closePaymentPopup()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition btn-action">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const actionButtons = document.getElementById('action-buttons');
+            const userInputContainer = document.getElementById('user-input-container');
+            const paymentSuccessPopup = document.getElementById('payment-success-popup');
+            
+            // Define steps as constants for better readability
+            const STEP_GUEST_COUNT = 0;
+            const STEP_SEATING = 1;
+            const STEP_DATE_TIME = 2;
+            const STEP_MENU_SELECTION = 3;
+            const STEP_FINAL_DETAILS = 4; // New step for name, phone, special requests
+            const STEP_CONFIRMATION = 5;
+            const STEP_COMPLETED = 6;
+
+            let currentStep = STEP_GUEST_COUNT; // Initial step
+            let reservationDetails = {
+                guests: 0,
+                seating: '',
+                dateTime: '',
+                dishes: [], // Will store objects like { name: 'Dish Name', price: 123 }
+                customerName: '',
+                customerPhone: '',
+                specialRequests: ''
+            };
+            
+            // Define paths for your local images using the absolute paths you provided
+            // WARNING: These absolute paths are NOT recommended for production or sharing.
+            // They will ONLY work on your specific computer if the browser allows file:// access.
+            const BASE_PATH = "file:///C:/Users/udhya/OneDrive/Desktop/chatbot/";
+            const CHAT_AVATAR_PATH = BASE_PATH + "chat.jpg";
+            const USER_AVATAR_PATH = BASE_PATH + "user.jpg";
+            
+            // Centralized Menu Data with specific image paths
+            const menuCategories = [
+                {
+                    name: 'Breakfast Specials',
+                    items: [
+                        { name: 'Masala Dosa', price: 300, desc: 'Crispy rice crepe with spiced potato filling', img: BASE_PATH + "Masala Dosa.jpg" },
+                        { name: 'Idli-Sambar', price: 220, desc: 'Soft steamed rice cakes with lentil stew', img: BASE_PATH + "Idli-Sambar.jpg" },
+                        { name: 'Vada', price: 180, desc: 'Crispy fried lentil doughnuts with chutney', img: BASE_PATH + "Vada.jpg" },
+                        { name: 'Pongal', price: 250, desc: 'Creamy rice and lentil porridge with ghee', img: BASE_PATH + "Pongal.jpg" }
+                    ]
+                },
+                {
+                    name: 'Lunch Thalis',
+                    items: [
+                        { name: 'Vegetarian Thali', price: 550, desc: 'Assortment of curries, rice, bread, and sweets', img: BASE_PATH + "Vegetarian Thali.jpg" },
+                        { name: 'Non-Veg Thali', price: 650, desc: 'Meat curries with rice, bread, and sides', img: BASE_PATH + "Non-Veg Thali.jpg" },
+                        { name: 'Mini Thali', price: 350, desc: 'Smaller portion for lighter appetite', img: BASE_PATH + "Mini Thali.jpg" }
+                    ]
+                },
+                {
+                    name: 'Dinner Specials',
+                    items: [
+                        { name: 'Chettinad Chicken', price: 600, desc: 'Spicy pepper chicken from Tamil Nadu', img: BASE_PATH + "Chettinad Chicken.jpg" },
+                        { name: 'Fish Curry', price: 700, desc: 'Traditional Kerala-style fish in coconut gravy', img: BASE_PATH + "Fish Curry.jpg" },
+                        { name: 'Biryani', price: 550, desc: 'Fragrant rice cooked with spices and meat', img: BASE_PATH + "Biryani.jpg" },
+                    ]
+                },
+                {
+                    name: 'Snacks & Sides',
+                    items: [
+                        { name: 'Pakora', price: 150, desc: 'Assorted vegetable fritters', img: BASE_PATH + "Pakora.jpg" },
+                        { name: 'Samosa', price: 80, desc: 'Spiced potato stuffed pastry', img: BASE_PATH + "Samosa.jpg" },
+                        { name: 'Raita', price: 90, desc: 'Cooling yogurt with vegetables', img: BASE_PATH + "Raita.jpg" }
+                    ]
+                },
+                {
+                    name: 'Desserts',
+                    items: [
+                        { name: 'Payasam', price: 200, desc: 'Sweet rice pudding with nuts', img: BASE_PATH + "Payasam.jpg" },
+                        { name: 'Gulab Jamun', price: 150, desc: 'Fried milk balls in syrup', img: BASE_PATH + "Gulab Jamun.jpg" },
+                        { name: 'Mango Lassi', price: 120, desc: 'Sweet yogurt mango drink', img: BASE_PATH + "Mango Lassi.jpg" }
+                    ]
+                }
+            ];
+
+            // Initialize chat
+            setTimeout(() => {
+                addBotMessage("Welcome to Spice Haven! I'm your reservation assistant. How many people will be in your party?");
+                showInput(); // Explicitly show the input field at the start
+            }, 800);
+            
+            // Send button click handler
+            sendBtn.addEventListener('click', handleUserMessage);
+            
+            // Enter key handler
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleUserMessage();
+                }
+            });
+            
+            function handleUserMessage() {
+                const message = userInput.value.trim();
+                if (!message) return; // Prevent sending empty messages
+
+                addUserMessage(message);
+                userInput.value = '';
+                
+                showLoadingAnimation();
+
+                setTimeout(() => {
+                    processBotResponse(message);
+                }, 1000);
+            }
+
+            function processBotResponse(message) {
+                switch(currentStep) {
+                    case STEP_GUEST_COUNT:
+                        const guests = parseInt(message);
+                        if (isNaN(guests) || guests <= 0) {
+                            addBotMessage("Please enter a valid number of guests (e.g., '2' for two people).");
+                            showInput(); // Keep showing input for guest count
+                        } else {
+                            reservationDetails.guests = guests;
+                            addBotMessage(`Understood, a reservation for ${guests} people.`);
+                            addBotMessage("Next, please choose your preferred seating area:");
+                            showSeatingOptions();
+                            currentStep = STEP_SEATING;
+                        }
+                        break;
+                    case STEP_FINAL_DETAILS:
+                        // This step's data is captured via specific input fields, not general user input
+                        // The "Continue" button on the form will call processFinalDetails
+                        addBotMessage("Please fill in your details and click 'Continue'.");
+                        showFinalDetailsForm(); // Re-show the form if they typed something
+                        break;
+                    // Other steps are handled by button clicks, not direct text input
+                    default:
+                        addBotMessage("Please use the provided buttons to make your selections, or start a new reservation if you'd like.");
+                        showInput(); // Re-show input if bot doesn't know how to handle
+                        break;
+                }
+            }
+
+            function addBotMessage(message) {
+                const div = document.createElement('div');
+                div.className = 'flex items-start mb-4 bot-message p-4';
+                div.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <img src="${CHAT_AVATAR_PATH}" alt="Chatbot avatar" class="rounded-full w-10 h-10 object-cover">
+                    </div>
+                    <div class="text-gray-800">
+                        ${message}
+                    </div>
+                `;
+                chatContainer.appendChild(div);
+                scrollToBottom();
+            }
+            
+            function addUserMessage(message) {
+                const div = document.createElement('div');
+                div.className = 'flex items-end justify-end mb-4 user-message p-4';
+                div.innerHTML = `
+                    <div class="flex-1 text-right">
+                        ${message}
+                    </div>
+                    <div class="flex-shrink-0 ml-3">
+                        <img src="${USER_AVATAR_PATH}" alt="User avatar" class="rounded-full w-10 h-10 object-cover">
+                    </div>
+                `;
+                chatContainer.appendChild(div);
+                scrollToBottom();
+            }
+
+            function scrollToBottom() {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            function showSeatingOptions() {
+                clearInputArea();
+                
+                const seatingOptionsHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 w-full">
+                        <div id="seating-balcony" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Balcony Seating' ? 'selected' : ''}">
+                            <img src="${BASE_PATH}Balcony Seating.jpg" alt="Elegant balcony seating with panoramic city views at sunset" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-semibold text-lg text-indigo-700">Balcony Seating</h3>
+                                <p class="text-gray-600 text-sm">Enjoy breathtaking views while dining</p>
+                                <button onclick="selectSeating('balcony', 'Balcony Seating')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition btn-action">Select</button>
+                            </div>
+                        </div>
+                        <div id="seating-window" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Window Side Seating' ? 'selected' : ''}">
+                            <img src="${BASE_PATH}Window Side.jpg" alt="Cozy window-side seats with natural light and garden views" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-semibold text-lg text-indigo-700">Window Side</h3>
+                                <p class="text-gray-600 text-sm">Natural light with garden views</p>
+                                <button onclick="selectSeating('window', 'Window Side Seating')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition btn-action">Select</button>
+                            </div>
+                        </div>
+                        <div id="seating-garden" class="seating-option cursor-pointer rounded-lg overflow-hidden border border-gray-200 ${reservationDetails.seating === 'Garden Seating' ? 'selected' : ''}">
+                            <img src="${BASE_PATH}Garden Seating.jpg" alt="Serene garden seating surrounded by lush tropical plants and soft lighting" class="w-full h-48 object-cover">
+                            <div class="p-4 bg-white">
+                                <h3 class="font-semibold text-lg text-indigo-700">Garden Seating</h3>
+                                <p class="text-gray-600 text-sm">Fresh air in our tropical garden</p>
+                                <button onclick="selectSeating('garden', 'Garden Seating')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition btn-action">Select</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="goBack()" class="mt-4 bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition btn-action w-full md:w-auto">Go Back</button>
+                `;
+                actionButtons.innerHTML = seatingOptionsHTML;
+                showActionButtons();
+            }
+            
+            window.selectSeating = function(seatingType, seatingName) {
+                reservationDetails.seating = seatingName;
+                
+                addUserMessage(`I'd like ${seatingName}.`);
+                showLoadingAnimation();
+
+                // Visual feedback for selected seating
+                document.querySelectorAll('.seating-option').forEach(el => el.classList.remove('selected'));
+                document.getElementById(`seating-${seatingType}`).classList.add('selected');
+                
+                setTimeout(() => {
+                    addBotMessage(`Great choice! Our ${seatingName} is wonderful. When would you like to visit us? All times are in IST (Indian Standard Time). Select your preferred date and time:`);
+                    showDateTimeOptions(); 
+                    currentStep = STEP_DATE_TIME;
+                }, 1000);
+            };
+            
+            function showDateTimeOptions() {
+                clearInputArea();
+                
+                // Generate next 7 days
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const now = new Date(); // Current date and time in local timezone
+                now.setHours(0, 0, 0, 0); // Set to start of today for comparison
+
+                let datesHTML = '';
+                for (let i = 0; i < 7; i++) {
+                    const currentDate = new Date();
+                    currentDate.setDate(now.getDate() + i); // Use now.getDate() to avoid time issues when comparing dates
+                    currentDate.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+
+                    const dayName = days[currentDate.getDay()];
+                    const dateStr = currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    const timeSlots = ['11:30 AM', '1:00 PM', '2:30 PM', '6:00 PM', '7:30 PM', '9:00 PM'];
+                    
+                    datesHTML += `<div class="date-slots mb-4 w-full">
+                        <h3 class="font-semibold text-indigo-700 mb-2">${dayName}, ${dateStr}</h3>
+                        <div class="grid grid-cols-3 md:grid-cols-6 gap-2">`;
+                    
+                    timeSlots.forEach(time => {
+                        // Create a full DateTime object for this slot to compare against current time
+                        const [timePart, ampm] = time.split(' ');
+                        let [hours, minutes] = timePart.split(':').map(Number);
+                        if (ampm === 'PM' && hours !== 12) hours += 12;
+                        if (ampm === 'AM' && hours === 12) hours = 0; // Midnight case
+
+                        const slotDateTime = new Date();
+                        slotDateTime.setDate(currentDate.getDate());
+                        slotDateTime.setMonth(currentDate.getMonth());
+                        slotDateTime.setFullYear(currentDate.getFullYear());
+                        slotDateTime.setHours(hours, minutes, 0, 0);
+
+                        // Check if the slot is in the past
+                        const isPast = slotDateTime < new Date(); // Compare against current exact time
+
+                        const isAvailable = Math.random() > 0.3 && !isPast; // Random availability AND not in the past
+                        const buttonClass = isAvailable ? 'bg-green-100 hover:bg-green-200 text-green-800' : 'bg-gray-200 text-gray-500 cursor-not-allowed';
+                        const disabledAttribute = isAvailable ? '' : 'disabled';
+                        const isSelected = reservationDetails.dateTime === `${dayName}, ${dateStr} ${time}`;
+
+                        datesHTML += `<button onclick="selectDateTime('${dayName}, ${dateStr} ${time}', this)" 
+                            class="py-2 px-3 rounded ${buttonClass} text-sm btn-action time-slot-btn ${isSelected ? 'selected' : ''}" ${disabledAttribute}>
+                            ${time} ${isPast ? '(Past)' : (!isAvailable ? '(Full)' : '')}
+                        </button>`;
+                    });
+                    
+                    datesHTML += `</div></div>`;
+                }
+                
+                actionButtons.innerHTML = datesHTML + 
+                    '<button onclick="goBack()" class="mt-4 bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition btn-action w-full md:w-auto">Go Back</button>';
+                showActionButtons();
+            }
+            
+            window.selectDateTime = function(dateTime, buttonElement) {
+                reservationDetails.dateTime = dateTime;
+                
+                addUserMessage(`I'd like to reserve for ${dateTime}.`);
+                showLoadingAnimation();
+
+                // Visual feedback for selected time slot
+                document.querySelectorAll('.time-slot-btn').forEach(btn => btn.classList.remove('selected'));
+                buttonElement.classList.add('selected');
+                
+                setTimeout(() => {
+                    addBotMessage(`${dateTime} is available! Now let's select some delicious South Indian dishes for your order. You can add multiple items.`);
+                    showMenuOptions();
+                    currentStep = STEP_MENU_SELECTION;
+                }, 1000);
+            };
+            
+            function showMenuOptions() {
+                clearInputArea();
+                
+                let menuHTML = '<div class="space-y-6 w-full">'; 
+                
+                menuCategories.forEach(category => {
+                    menuHTML += `<div>
+                        <h3 class="font-semibold text-lg text-indigo-700 mb-3">${category.name}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+                    
+                    category.items.forEach(item => {
+                        const isAdded = reservationDetails.dishes.some(dish => dish.name === item.name); // Check if dish name is present
+                        const buttonId = `dish-${item.name.replace(/\s/g, '-')}`;
+                        menuHTML += `<div class="menu-item bg-white p-4 rounded-lg border border-gray-200">
+                            <img src="${item.img}" alt="${item.name}" class="w-full h-32 object-cover rounded-md mb-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1 pr-2">
+                                    <h4 class="font-medium text-gray-800">${item.name}</h4>
+                                    <p class="text-sm text-gray-600">${item.desc}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <span class="font-semibold">₹${item.price}</span>
+                                </div>
+                            </div>
+                            ${isAdded ? 
+                                `<button id="${buttonId}" onclick="removeDish('${item.name}')" 
+                                    class="mt-3 bg-red-500 text-white px-3 py-1 rounded-lg text-sm btn-action hover:bg-red-600">
+                                    Remove
+                                </button>`
+                                : 
+                                `<button id="${buttonId}" onclick="selectDish('${item.name}', ${item.price})" 
+                                    class="mt-3 bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm btn-action hover:bg-indigo-700">
+                                    Add to Order
+                                </button>`
+                            }
+                        </div>`;
+                    });
+                    
+                    menuHTML += `</div></div>`;
+                });
+                
+                menuHTML += `</div>
+                    <div class="mt-6 flex justify-between items-center w-full">
+                        <button onclick="goBack()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition btn-action">Go Back</button>
+                        <button onclick="goToFinalDetails()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg btn-action">
+                            Continue
+                        </button>
+                    </div>`;
+                
+                actionButtons.innerHTML = menuHTML;
+                showActionButtons();
+            }
+
+            // New function to go to final details step
+            window.goToFinalDetails = function() {
+                showLoadingAnimation();
+                clearInputArea();
+                setTimeout(() => {
+                    addBotMessage("Almost there! Please provide your contact details and any special requests.");
+                    showFinalDetailsForm();
+                    currentStep = STEP_FINAL_DETAILS;
+                }, 1000);
+            };
+
+            function showFinalDetailsForm() {
+                clearInputArea();
+                const formHTML = `
+                    <div class="space-y-4 w-full bg-indigo-50 p-4 rounded-lg">
+                        <div>
+                            <label for="customer-name" class="block text-sm font-medium text-gray-700">Your Full Name:</label>
+                            <input type="text" id="customer-name" value="${reservationDetails.customerName}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., John Doe">
+                        </div>
+                        <div>
+                            <label for="customer-phone" class="block text-sm font-medium text-gray-700">Phone Number:</label>
+                            <input type="tel" id="customer-phone" value="${reservationDetails.customerPhone}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., +91 9876543210">
+                        </div>
+                        <div>
+                            <label for="special-requests" class="block text-sm font-medium text-gray-700">Special Requests (optional):</label>
+                            <textarea id="special-requests" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., table near window, birthday surprise">${reservationDetails.specialRequests}</textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-between items-center w-full">
+                        <button onclick="goBack()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition btn-action">Go Back</button>
+                        <button onclick="processFinalDetails()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg btn-action">
+                            Review & Confirm
+                        </button>
+                    </div>
+                `;
+                actionButtons.innerHTML = formHTML;
+                showActionButtons();
+            }
+
+            window.processFinalDetails = function() {
+                const name = document.getElementById('customer-name').value.trim();
+                const phone = document.getElementById('customer-phone').value.trim();
+                const requests = document.getElementById('special-requests').value.trim();
+
+                if (!name || !phone) {
+                    addBotMessage("Please provide your **Full Name** and **Phone Number** to proceed.");
+                    return; // Stay on this step
+                }
+                if (!/^\+?\d{10,15}$/.test(phone)) { // Basic phone number validation
+                    addBotMessage("Please enter a valid phone number (10-15 digits, can start with +).");
+                    return;
+                }
+
+                reservationDetails.customerName = name;
+                reservationDetails.customerPhone = phone;
+                reservationDetails.specialRequests = requests;
+                
+                addUserMessage("My details are filled. Let's review!");
+                showLoadingAnimation();
+                setTimeout(() => {
+                    displayConfirmationSummary();
+                    currentStep = STEP_CONFIRMATION;
+                }, 1000);
+            };
+
+            // Modified to accept price
+            window.selectDish = function(dishName, dishPrice) {
+                // Check if dish (by name) is already in the list
+                if (!reservationDetails.dishes.some(dish => dish.name === dishName)) {
+                    reservationDetails.dishes.push({ name: dishName, price: dishPrice });
+                    addBotMessage(`Added **${dishName}** to your order.`);
+                    
+                    // Update button state visually
+                    const dishButton = document.getElementById(`dish-${dishName.replace(/\s/g, '-')}`);
+                    if (dishButton) {
+                        dishButton.textContent = 'Remove';
+                        dishButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                        dishButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                        dishButton.onclick = () => removeDish(dishName); // Update onclick to remove
+                    }
+                } else {
+                    addBotMessage(`**${dishName}** is already in your order.`);
+                }
+            };
+
+            window.removeDish = function(dishName) {
+                const initialLength = reservationDetails.dishes.length;
+                reservationDetails.dishes = reservationDetails.dishes.filter(dish => dish.name !== dishName);
+                
+                if (reservationDetails.dishes.length < initialLength) {
+                    addBotMessage(`Removed **${dishName}** from your order.`);
+                    // Re-render menu options to update the button
+                    showMenuOptions(); 
+                } else {
+                    addBotMessage(`**${dishName}** was not found in your order.`);
+                }
+            };
+
+
+            function calculateTotalCost() {
+                return reservationDetails.dishes.reduce((total, dish) => total + dish.price, 0);
+            }
+
+            window.reviewAndConfirm = function() {
+                showLoadingAnimation();
+                clearInputArea(); // Clear buttons while loading
+
+                if (reservationDetails.guests === 0 || !reservationDetails.seating || !reservationDetails.dateTime || !reservationDetails.customerName || !reservationDetails.customerPhone) {
+                    addBotMessage("It seems some required reservation details are missing. Please go back and ensure all steps are completed.");
+                    setTimeout(() => {
+                        // Attempt to go back to the first missing step, or prompt to restart
+                        if (reservationDetails.guests === 0) {
+                            goBackToStep(STEP_GUEST_COUNT);
+                        } else if (!reservationDetails.seating) {
+                            goBackToStep(STEP_SEATING);
+                        } else if (!reservationDetails.dateTime) {
+                            goBackToStep(STEP_DATE_TIME);
+                        } else if (!reservationDetails.customerName || !reservationDetails.customerPhone) {
+                            goBackToStep(STEP_FINAL_DETAILS);
+                        }
+                    }, 1000);
+                    return;
+                }
+                
+                setTimeout(() => {
+                    displayConfirmationSummary();
+                    currentStep = STEP_CONFIRMATION;
+                }, 1000);
+            };
+
+            function displayConfirmationSummary() {
+                const totalFoodCost = calculateTotalCost();
+                const advancePayment = (totalFoodCost * 0.10).toFixed(2); // 10% advance, 2 decimal places
+
+                const summaryHTML = `
+                    <div class="bg-indigo-50 p-4 rounded-lg w-full">
+                        <h3 class="font-semibold text-indigo-700 mb-2">Please Review Your Reservation Details:</h3>
+                        <p><strong>Name:</strong> ${reservationDetails.customerName}</p>
+                        <p><strong>Phone:</strong> ${reservationDetails.customerPhone}</p>
+                        <p><strong>Guests:</strong> ${reservationDetails.guests}</p>
+                        <p><strong>Seating Area:</strong> ${reservationDetails.seating}</p>
+                        <p><strong>Date & Time:</strong> ${reservationDetails.dateTime}</p>
+                        <p><strong>Selected Dishes:</strong></p>
+                        ${reservationDetails.dishes.length > 0 ? `<ul class="list-disc pl-5 mt-1">${reservationDetails.dishes.map(dish => `<li>${dish.name} (₹${dish.price})</li>`).join('')}</ul>` : '<p class="italic text-gray-600">No dishes selected yet.</p>'}
+                        <p><strong>Special Requests:</strong> ${reservationDetails.specialRequests ? reservationDetails.specialRequests : 'None'}</p>
+                        <p class="mt-3 font-bold text-lg">Estimated Food Cost: ₹${totalFoodCost}</p>
+                        <p class="font-bold text-lg text-red-600">Advance Payment Required (10%): ₹${advancePayment}</p>
+                    </div>
+                    <div class="mt-4 flex flex-wrap justify-between items-center w-full gap-2">
+                        <button onclick="goBack()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition btn-action">Go Back</button>
+                        <button onclick="confirmCancelReservation()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg btn-action">
+                            Cancel Reservation
+                        </button>
+                        <button onclick="completeReservation()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg btn-action flex-grow md:flex-grow-0">
+                            Confirm Reservation & Pay Advance
+                        </button>
+                    </div>
+                `;
+                addBotMessage(summaryHTML);
+                showActionButtons(); // Show action buttons for confirm/go back
+            }
+
+            window.confirmCancelReservation = function() {
+                showLoadingAnimation();
+                clearInputArea();
+                setTimeout(() => {
+                    addBotMessage("Are you sure you want to cancel your reservation? This action cannot be undone.");
+                    actionButtons.innerHTML = `
+                        <button onclick="cancelReservationConfirmed()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg btn-action w-full md:w-auto">Yes, Cancel</button>
+                        <button onclick="reviewAndConfirm()" class="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition btn-action w-full md:w-auto">No, Go Back</button>
+                    `;
+                    showActionButtons();
+                }, 700);
+            };
+
+            window.cancelReservationConfirmed = function() {
+                showLoadingAnimation();
+                clearInputArea();
+                setTimeout(() => {
+                    addBotMessage("Your reservation has been cancelled. We hope to see you another time!");
+                    currentStep = STEP_COMPLETED; // Mark as completed (cancelled)
+                    resetChat(true); // Reset and offer new reservation
+                }, 1000);
+            };
+
+
+            window.completeReservation = function() {
+                showLoadingAnimation();
+                clearInputArea(); // Clear buttons while loading
+
+                const totalFoodCost = calculateTotalCost();
+                const advancePayment = (totalFoodCost * 0.10).toFixed(2);
+
+                setTimeout(() => {
+                    addBotMessage(`🎉 Your reservation is confirmed for **${reservationDetails.guests} people** in the **${reservationDetails.seating}** area, on **${reservationDetails.dateTime}**!`);
+                    addBotMessage(`Your contact: **${reservationDetails.customerName}**, **${reservationDetails.customerPhone}**.`);
+                    
+                    if (reservationDetails.dishes.length > 0) {
+                        addBotMessage(`Your pre-ordered dishes include: **${reservationDetails.dishes.map(d => d.name).join(', ')}**.`);
+                        addBotMessage(`The estimated food cost is **₹${totalFoodCost}**. A **₹${advancePayment}** advance payment has been processed.`);
+                    } else {
+                        addBotMessage("You haven't pre-ordered any dishes. No worries! Our full menu will be available upon arrival.");
+                        addBotMessage(`As there are no pre-ordered dishes, no advance payment is required at this time.`);
+                    }
+                    if (reservationDetails.specialRequests) {
+                        addBotMessage(`We've noted your special request: "${reservationDetails.specialRequests}".`);
+                    }
+
+                    // Show the payment success popup
+                    showPaymentPopup();
+
+                    currentStep = STEP_COMPLETED;
+                    // Note: resetChat() is now called after popup closes.
+                }, 1500);
+            };
+
+            function showPaymentPopup() {
+                paymentSuccessPopup.classList.remove('hidden');
+                // Use a slight delay to trigger transition for 'show' class
+                setTimeout(() => {
+                    paymentSuccessPopup.classList.add('show');
+                }, 10); // Small delay
+            }
+
+            window.closePaymentPopup = function() {
+                paymentSuccessPopup.classList.remove('show');
+                // Hide fully after transition
+                setTimeout(() => {
+                    paymentSuccessPopup.classList.add('hidden');
+                    resetChat(); // Reset chat after popup is closed
+                }, 300); // Match transition duration
+            }
+            
+            function resetChat(clearHistory = false) {
+                reservationDetails = {
+                    guests: 0,
+                    seating: '',
+                    dateTime: '',
+                    dishes: [],
+                    customerName: '',
+                    customerPhone: '',
+                    specialRequests: ''
+                };
+                currentStep = STEP_GUEST_COUNT; 
+                
+                clearInputArea(); 
+                if (clearHistory) {
+                    chatContainer.innerHTML = ''; // Clear chat history only if explicitly told
+                }
+                
+                // Add new reservation button
+                actionButtons.innerHTML = `
+                    <button onclick="startNewReservation()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg btn-action">
+                        Make Another Reservation
+                    </button>
+                `;
+                showActionButtons(); 
+            }
+            
+            window.startNewReservation = function() {
+                chatContainer.innerHTML = ''; // Clear chat history
+                actionButtons.classList.add('hidden');
+                userInputContainer.classList.remove('hidden');
+                userInput.focus(); 
+                
+                setTimeout(() => {
+                    addBotMessage("Welcome back to Spice Haven! Let's start a new reservation. How many people will be in your party?");
+                    showInput(); 
+                }, 800);
+            };
+            
+            function clearInputArea() {
+                actionButtons.innerHTML = '';
+                actionButtons.classList.add('hidden');
+            }
+
+            function showActionButtons() {
+                actionButtons.classList.remove('hidden');
+                userInputContainer.classList.add('hidden'); 
+                scrollToBottom();
+            }
+
+            function showInput() {
+                actionButtons.classList.add('hidden');
+                userInputContainer.classList.remove('hidden');
+                userInput.focus();
+                scrollToBottom();
+            }
+
+            window.goBack = function() {
+                showLoadingAnimation();
+                clearInputArea(); 
+
+                setTimeout(() => {
+                    // Navigate back based on the current step
+                    switch (currentStep) {
+                        case STEP_SEATING:
+                            addBotMessage("How many people will be in your party?");
+                            currentStep = STEP_GUEST_COUNT;
+                            showInput();
+                            break;
+                        case STEP_DATE_TIME:
+                            addBotMessage("Alright, let's re-select your preferred seating area:");
+                            showSeatingOptions();
+                            currentStep = STEP_SEATING;
+                            break;
+                        case STEP_MENU_SELECTION:
+                            addBotMessage("Okay, when would you like to visit us? Select your preferred date and time:");
+                            showDateTimeOptions();
+                            currentStep = STEP_DATE_TIME;
+                            break;
+                        case STEP_FINAL_DETAILS:
+                            addBotMessage("No problem, you can adjust your dish selections here:");
+                            showMenuOptions();
+                            currentStep = STEP_MENU_SELECTION;
+                            break;
+                        case STEP_CONFIRMATION:
+                            addBotMessage("Please re-enter your contact details or modify your special requests:");
+                            showFinalDetailsForm();
+                            currentStep = STEP_FINAL_DETAILS;
+                            break;
+                        default:
+                            addBotMessage("I'm not sure how to go back further from this point. Would you like to start a new reservation?");
+                            resetChat(); 
+                            break;
+                    }
+                }, 700);
+            };
+
+            // Helper function to go back to a specific step, useful for validation
+            function goBackToStep(step) {
+                switch(step) {
+                    case STEP_GUEST_COUNT:
+                        addBotMessage("How many people will be in your party?");
+                        currentStep = STEP_GUEST_COUNT;
+                        showInput();
+                        break;
+                    case STEP_SEATING:
+                        addBotMessage("Please re-select your preferred seating area:");
+                        showSeatingOptions();
+                        currentStep = STEP_SEATING;
+                        break;
+                    case STEP_DATE_TIME:
+                        addBotMessage("Please re-select your preferred date and time:");
+                        showDateTimeOptions();
+                        currentStep = STEP_DATE_TIME;
+                        break;
+                    case STEP_MENU_SELECTION:
+                        addBotMessage("Please review and select your dishes.");
+                        showMenuOptions();
+                        currentStep = STEP_MENU_SELECTION;
+                        break;
+                    case STEP_FINAL_DETAILS:
+                        addBotMessage("Please provide your contact details and any special requests.");
+                        showFinalDetailsForm();
+                        currentStep = STEP_FINAL_DETAILS;
+                        break;
+                    default:
+                        addBotMessage("An unexpected error occurred. Please start a new reservation.");
+                        resetChat();
+                        break;
+                }
+            }
+            
+            function showLoadingAnimation() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'flex items-start mb-4 bot-message p-4 animate-pulse';
+                loadingDiv.innerHTML = `
+                    <div class="flex-shrink-0 mr-3">
+                        <img src="${CHAT_AVATAR_PATH}" alt="Chatbot avatar processing request" class="rounded-full w-10 h-10 object-cover">
+                    </div>
+                    <div class="space-y-2">
+                        <div class="h-2 bg-gray-200 rounded w-20"></div>
+                    </div>
+                `;
+                chatContainer.appendChild(loadingDiv);
+                scrollToBottom();
+                
+                setTimeout(() => {
+                    loadingDiv.remove();
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
